@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Points de Collecte</title>
+</head>
+<body>
+    <h1>Liste des Points de Collecte</h1>
+    <table border="1">
+        <tr>
+            <th>Nom</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Actions</th>
+        </tr>
+        <tr th:each="point : ${collectPoints}">
+            <td th:text="${point.name}"></td>
+            <td th:text="${point.latitude}"></td>
+            <td th:text="${point.longitude}"></td>
+            <td>
+                <a th:href="@{'/admin/collect-points/delete/' + ${point.id}}">Supprimer</a>
+            </td>
+        </tr>
+    </table>
+    <a href="/admin/collect-points/add">Ajouter un nouveau point</a>
+</body>
+</html>

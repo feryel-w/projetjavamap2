@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter un Point de Collecte</title>
+</head>
+<body>
+    <h1>Ajouter un Point de Collecte</h1>
+    <form th:action="@{/admin/collect-points/add}" th:object="${collectPoint}" method="post">
+        <label>Nom:</label>
+        <input type="text" th:field="*{name}" required/><br/>
+
+        <label>Latitude:</label>
+        <input type="number" th:field="*{latitude}" step="0.000001" required/><br/>
+
+        <label>Longitude:</label>
+        <input type="number" th:field="*{longitude}" step="0.000001" required/><br/>
+
+        <button type="submit">Ajouter</button>
+    </form>
+</body>
+</html>

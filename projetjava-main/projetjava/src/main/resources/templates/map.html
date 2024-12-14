@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash Collection Map 🗑️</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0fff4; /* Light green background */
+            color: #333;
+            text-align: center;
+        }
+
+        #map {
+            height: 600px;
+            width: 80%;
+            margin: 20px auto;
+            border: 5px solid #4CAF50;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #4CAF50;
+            font-size: 2rem;
+        }
+
+        .leaflet-popup-content {
+            font-size: 1rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trash Collection Points 🗑️</h1>
+    <p>Click on the map to add a new collection point!</p>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script th:inline="javascript">
+        // Initialize the map centered on Tunis
+        var map = L.map('map').setView([36.8065, 10.1815], 13);
+
+        // Add a CartoDB light-themed tile layer
+        L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+        }).addTo(map);
+
+        // Trash bin icon for collection points
+        var trashIcon = L.icon({
+            iconUrl: '/icons/icons8-collect-50.png', // Replace with your trash bin icon path
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+        });
+
+        // Injected collection points via Thymeleaf
+        var collectPoints = /*[[${collectPoints}]]*/ [];
+
+        // Add markers for existing collection points
+        collectPoints.forEach(function(point) {
+            L.marker([point.latitude, point.longitude], { icon: trashIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <b>🗑️ ${point.name}</b><br>
+                    📍 Latitude: ${point.latitude}<br>
+                    📝 ${point.description}<br>
+                    ♻️ Let's keep it clean!
+                `);
+        });
+
+        // Handle click event to add new collection point
+        map.on('click', function(e) {
+            Swal.fire({
+                title: '🗑️ Add Collection Point',
+                html: `
+                    <input id="point-name" class="swal2-input" placeholder="Name of the Point">
+                    <textarea id="point-desc" class="swal2-textarea" placeholder="Description"></textarea>
+                `,
+                confirmButtonText: 'Add 🧹',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel 🚫',
+                preConfirm: () => {
+                    const name = document.getElementById('point-name').value;
+                    const desc = document.getElementById('point-desc').value;
+                    if (!name || !desc) {
+                        Swal.showValidationMessage('Please enter both name and description 🥺');
+                    }
+                    return { name, desc };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { name, desc } = result.value;
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+
+                    fetch('/admin/collect-points/add-from-map', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, description: desc, latitude: lat, longitude: lng })
+                    }).then(() => {
+                        Swal.fire('Added! 🌟', 'Collection point added successfully!', 'success');
+                        location.reload(); // Refresh to display the new point
+                    }).catch(() => {
+                        Swal.fire('Oops! 😢', 'Something went wrong!', 'error');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
